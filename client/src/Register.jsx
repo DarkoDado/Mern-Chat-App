@@ -9,7 +9,7 @@ export default function Register() {
   const { setUsername: setLoggedInUserName, setId } = useContext(UserContext)
   async function handleSubmit(e) {
     e.preventDefault()
-    const url = isLoginOrRegister === 'register' ? 'regiser' : 'login'
+    const url = isLoginOrRegister === 'register' ? 'register' : 'login'
     const { data } = await axios.post(url, { username, password })
     setLoggedInUserName(username)
     setId(data.id)
