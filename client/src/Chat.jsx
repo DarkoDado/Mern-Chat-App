@@ -1,9 +1,18 @@
+import { useEffect, useState } from 'react'
 import { BsFillSendPlusFill } from 'react-icons/bs'
 export default function Chat() {
+  const [ws, setWs] = useState(null)
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:4000')
+    setWs(ws)
+    ws.addEventListener('message', handleMessage)
+  }, [])
+  function handleMessage(e) {
+    console.log('new message', e)
+  }
   return (
     <div className="flex h-screen">
-      <div className="bg-white w-1/3">Contacts</div>
-      <div className="bg-blue-100 w-2/3 p-2 flex flex-col">
+      <div className="bg-blue-200 w-2/3 p-2 flex flex-col">
         <div className="flex-grow">Messages with selected person</div>
         <div className="flex gap-2 mx-3">
           <input
@@ -19,6 +28,7 @@ export default function Chat() {
           </button>
         </div>
       </div>
+      <div className="bg-white w-1/3">Contacts</div>
     </div>
   )
 }
