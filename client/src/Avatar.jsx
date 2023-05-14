@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types'
+
 export default function Avatar({ username, userId }) {
   const colors = [
     'bg-red-200',
@@ -18,3 +20,8 @@ export default function Avatar({ username, userId }) {
     </div>
   )
 }
+
+Avatar.propTypes = {
+  username: PropTypes.string.isRequired,
+  userId: PropTypes.string.isRequired,
+};
