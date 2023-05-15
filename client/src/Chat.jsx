@@ -1,4 +1,5 @@
 import { useCallback, useContext, useEffect, useState } from 'react'
+import uniqBy from 'lodash'
 import { BsFillSendPlusFill } from 'react-icons/bs'
 import { UserContext } from './UserContext.jsx'
 import Avatar from './Avatar'
@@ -16,8 +17,13 @@ export default function Chat() {
     const messageData = JSON.parse(e.data)
     if ('online' in messageData) {
       showOnlinePeople(messageData.online)
-    } else {
-      setMessages((prev) => [...prev, { isOur: false, text: messageData.text }])
+    } else if ('text' in messageData) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          ...messageData,
+        },
+      ])
     }
   }, [])
 
@@ -45,20 +51,43 @@ export default function Chat() {
       }),
     )
     setNewMessageText('')
-    setMessages((prev) => [...prev, { text: newMessageText, isOur: true }])
+    setMessages((prev) => [
+      ...prev,
+      {
+        text: newMessageText,
+        sender: id,
+        recipient: selectedUserId,
+      },
+    ])
   }
 
   const onlinePeopleExcludingOurUser = { ...onlinePeople } // da pokazuje online korisnike, bez nas trenutnih
   delete onlinePeopleExcludingOurUser[id]
+
+  const messagesWithoutDupes = uniqBy(messages, '_id')
 
   return (
     <div className="flex h-screen">
       <div className="bg-blue-200 w-3/4 p-2 flex flex-col">
         <div className="flex-grow">
           {!!selectedUserId && (
-            <div>
-              {messages.map((message) => (
-                <div>{message.text}</div>
+            <div className="overflow-scroll">
+              {messages.map((message, i) => (
+                <div key={i}>
+                  <div
+                    className={
+                      'inline-block p-2 my-2 rounded-sm text-sm ' +
+                      (message.sender === id
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-white text-gray-500')
+                    }
+                  >
+                    sender: {message.sender}
+                    <br />
+                    my id: {id} <br />
+                    {message.text}
+                  </div>
+                </div>
               ))}
             </div>
           )}
@@ -94,7 +123,7 @@ export default function Chat() {
       </div>
       <div className="bg-white flex-grow">
         <Logo />
-        {Object.keys(onlinePeople).map((userId) => (
+        {Object.keys(onlinePeopleExcludingOurUser).map((userId) => (
           <div
             key={userId}
             onClick={() => setSelectedUserId(userId)}

@@ -1,9 +1,8 @@
 import { createContext, useEffect, useState } from 'react'
-
-export const UserContext = createContext({})
-
 import PropTypes from 'prop-types'
 import axios from 'axios'
+
+export const UserContext = createContext({})
 
 export function UserContextProvider({ children }) {
   const [username, setUsername] = useState(null)
