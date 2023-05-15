@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useState } from 'react'
-import uniqBy from 'lodash'
+import { uniqBy } from 'lodash'
 import { BsFillSendPlusFill } from 'react-icons/bs'
 import { UserContext } from './UserContext.jsx'
 import Avatar from './Avatar'
@@ -13,26 +13,36 @@ export default function Chat() {
   const [messages, setMessages] = useState([])
   const { username, id } = useContext(UserContext)
 
-  const handleMessage = useCallback((e) => {
-    const messageData = JSON.parse(e.data)
-    if ('online' in messageData) {
-      showOnlinePeople(messageData.online)
-    } else if ('text' in messageData) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          ...messageData,
-        },
-      ])
-    }
-  }, [])
+  // const handleMessage = useCallback((e) => {
+  //   const messageData = JSON.parse(e.data)
+  //   console.log(messageData, e)
+  //   if ('online' in messageData) {
+  //     showOnlinePeople(messageData.online)
+  //   } else if ('text' in messageData) {
+  //     setMessages((prev) => [
+  //       ...prev,
+  //       {
+  //         ...messageData.text,
+  //       },
+  //     ])
+  //   }
+  // }, [])
 
   useEffect(() => {
+    function handleMessage(ev) {
+      const messageData = JSON.parse(ev.data)
+      console.log({ ev, messageData })
+      if ('online' in messageData) {
+        showOnlinePeople(messageData.online)
+      } else if ('text' in messageData) {
+        setMessages((prev) => [...prev, { isOur: false, text: messageData.text }])
+      }
+    }
     const ws = new WebSocket('ws://localhost:4000')
     setWs(ws)
 
     ws.addEventListener('message', handleMessage)
-  }, [handleMessage])
+  }, [selectedUserId])
 
   function showOnlinePeople(peopleArray) {
     const people = {}
@@ -64,7 +74,7 @@ export default function Chat() {
   const onlinePeopleExcludingOurUser = { ...onlinePeople } // da pokazuje online korisnike, bez nas trenutnih
   delete onlinePeopleExcludingOurUser[id]
 
-  const messagesWithoutDupes = uniqBy(messages, '_id')
+  const messagesWithoutDupes = uniqBy(messages, 'id')
 
   return (
     <div className="flex h-screen">
@@ -72,8 +82,8 @@ export default function Chat() {
         <div className="flex-grow">
           {!!selectedUserId && (
             <div className="overflow-scroll">
-              {messages.map((message, i) => (
-                <div key={i}>
+              {messagesWithoutDupes.map((message) => (
+                <div key={message._id}>
                   <div
                     className={
                       'inline-block p-2 my-2 rounded-sm text-sm ' +

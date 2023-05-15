@@ -2,6 +2,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken')
 const User = require('./models/User')
+const Message = require('./models/Message')
 const cookieParser = require('cookie-parser');
 const cors = require('cors')
 const bcrypt = require('bcryptjs')
@@ -18,7 +19,7 @@ app.use(express.json())
 app.use(cookieParser());
 app.use(cors({
     credentials: true,
-    origin: process.env.CLIENT_URL,
+    origin: true,
 }))
 
 app.get('/test', (req, res) => {
@@ -90,13 +91,22 @@ wss.on('connection', (connection, req) => {
         }
     }
 
-    connection.on('mesage', (message, isBinary) => {
+    connection.on('message', async (message) => {
         const messageData = JSON.parse(message.toString())
         const { recipient, text } = messageData
         if (recipient && text) {
+            const messageDoc = await Message.create({
+                sender: connection.userId,
+                recipient,
+                text,
+            });
             [...wss.clients]
-            .filter(c => c.userId === recipient)
-            .forEach(c => c.send(JSON.stringify({ text })))
+                .filter(c => c.userId === recipient)
+                .forEach(c => c.send(JSON.stringify({
+                    text,
+                    sender: connection.userId,
+                    _id: messageDoc._id, 
+                })))
         }
     });
 
